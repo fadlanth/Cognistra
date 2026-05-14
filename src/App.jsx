@@ -34,9 +34,9 @@ const App = () => {
   const N8N_WEBHOOK_URL = "https://attire-uncurled-endorphin.ngrok-free.dev/webhook/cognistra";
 
   const [progress, setProgress] = useState({
-    fisika: { label: 'Fisika', level: 10, color: 'bg-blue-500', icon: <Atom size={18} className="text-blue-500"/> },
-    kimia: { label: 'Kimia', level: 5, color: 'bg-emerald-500', icon: <Beaker size={18} className="text-emerald-500"/> },
-    matematika: { label: 'Matematika', level: 30, color: 'bg-indigo-500', icon: <Calculator size={18} className="text-indigo-500"/> },
+    fisika: { label: 'Fisika', level: 0, color: 'bg-blue-500', icon: <Atom size={18} className="text-blue-500"/> },
+    kimia: { label: 'Kimia', level: 0, color: 'bg-emerald-500', icon: <Beaker size={18} className="text-emerald-500"/> },
+    matematika: { label: 'Matematika', level: 0, color: 'bg-indigo-500', icon: <Calculator size={18} className="text-indigo-500"/> },
     biologi: { label: 'Biologi', level: 0, color: 'bg-rose-500', icon: <Dna size={18} className="text-rose-500"/> },
   });
 
