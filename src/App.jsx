@@ -30,8 +30,34 @@ const App = () => {
   });
   
   const userProfile = { id: "user_fadlan_01", name: "Fadlan", jurusan: "RPL" };
+  const [userJurusan, setUserJurusan] = useState(() => {
+    return localStorage.getItem('cognistra_jurusan') || 'RPL';
+  });
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
+
   const chatContainerRef = useRef(null);
   const N8N_WEBHOOK_URL = "https://dlann.app.n8n.cloud/webhook/cognistra";
+
+  useEffect(() => {
+    if (!localStorage.getItem('cognistra_jurusan')) {
+      setIsSetupOpen(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cognistra_history', JSON.stringify(chatHistory));
+  }, [chatHistory]);
+
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('cognistra_history');
+    if (savedHistory) {
+      try {
+        setChatHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("Gagal load history", e);
+      }
+    }
+  }, []);
 
   const [progress, setProgress] = useState({
     fisika: { label: 'Fisika', level: 0, color: 'bg-blue-500', icon: <Atom size={18} className="text-blue-500"/> },
@@ -80,20 +106,28 @@ const App = () => {
           chatInput: userText, 
           userId: userProfile.id, 
           mode: mode, 
-          jurusan: userProfile.jurusan,
+          jurusan: userJurusan,
           subject: activeSubject 
         }),
       });
 
       const data = await response.json(); 
       
+      // TAMBAHAN CODE PEMBERSIH LATEX
+      const cleanOutput = (text) => {
+        return text
+          .replace(/\$\$?[^$]*\$\$?/g, '[Rumus Matematika]') // Ganti blok LaTeX jadi teks
+          .replace(/\\[\(\[][^\\)]*\\[\)\]]/g, '[Rumus Matematika]') // Ganti inline LaTeX
+          .replace(/\\[a-zA-Z]+/g, ''); // Hapus perintah latex sisa seperti \alpha, \beta
+      };
+
       setChatHistory(prev => ({
         ...prev,
         [activeSubject]: {
           ...prev[activeSubject],
           [mode]: [...prev[activeSubject][mode], { 
             role: 'assistant', 
-            content: data.output,
+            content: cleanOutput(data.output),
             action: data.xp_gain > 0 ? { skill: data.skill, xp: data.xp_gain } : null 
           }]
         }
@@ -116,6 +150,12 @@ const App = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSaveJurusan = (jurusan) => {
+    setUserJurusan(jurusan);
+    localStorage.setItem('cognistra_jurusan', jurusan);
+    setIsSetupOpen(false);
   };
 
   // Render obrolan khusus untuk kamar yang sedang dibuka
@@ -259,10 +299,38 @@ const App = () => {
           <p className="text-[10px] text-slate-400 font-bold mb-3 uppercase tracking-widest border-b border-slate-200 pb-2">Active Session</p>
           <div className="text-sm font-semibold text-slate-600 space-y-2">
             <p className="flex justify-between items-center"><span>Student:</span> <span className="text-slate-900 bg-white px-2 py-1 rounded border border-slate-100 shadow-sm">{userProfile.name}</span></p>
-            <p className="flex justify-between items-center"><span>Major:</span> <span className="text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">{userProfile.jurusan}</span></p>
+            <p className="flex justify-between items-center"><span>Major:</span> <span className="text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">{userJurusan}</span></p>
           </div>
         </div>
       </aside>
+
+      {/* PROFILE SETUP MODAL (Hanya muncul jika belum set jurusan) */}
+      {isSetupOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl border border-indigo-100">
+            <div className="text-center mb-6">
+              <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <GraduationCap size={32} className="text-indigo-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800">Halo Ranger! 👋</h3>
+              <p className="text-slate-500 mt-2">Sebelum mulai, sesuaikan Cognistra dengan jurusanmu agar analoginya tepat sasaran.</p>
+            </div>
+            
+            <div className="space-y-3">
+              {['RPL', 'Otomotif', 'Kuliner', 'Teknik Las', 'Listrik', 'Teknik Sipil'].map((j) => (
+                <button
+                  key={j}
+                  onClick={() => handleSaveJurusan(j)}
+                  className="w-full p-4 text-left rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-semibold text-slate-700 flex justify-between items-center group"
+                >
+                  <span>{j}</span>
+                  <span className="opacity-0 group-hover:opacity-100 text-indigo-600">Pilih →</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
