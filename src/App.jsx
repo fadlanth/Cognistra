@@ -132,8 +132,8 @@ const App = () => {
 };
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-indigo-100">
-      
+// KODE BARU (Perhatikan h-[100dvh] dan overflow-hidden)
+<div className="flex h-[100dvh] bg-[#F8FAFC] text-slate-800 font-sans selection:bg-indigo-100 overflow-hidden">      
       <main className="flex-1 flex flex-col p-4 md:p-8 overflow-hidden relative">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-6 border-b border-slate-200/60 gap-4">
           <div className="flex items-center gap-3">
