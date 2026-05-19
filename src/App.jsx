@@ -267,7 +267,11 @@ const App = () => {
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto space-y-6 pr-4 pb-4 custom-scrollbar">
           {activeMessages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
-              <div className={`max-w-[85%] md:max-w-[75%] p-5 rounded-3xl ${msg.role === 'user' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 rounded-br-sm' : 'bg-white border border-slate-100 text-slate-700 shadow-sm rounded-bl-sm'}`}>
+              <div className={`max-w-[85%] md:max-w-[75%] p-5 rounded-3xl transition-all ${
+                msg.role === 'user' 
+                  ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-300/30 rounded-br-sm border border-indigo-500/20' 
+                  : 'bg-white border border-slate-100 text-slate-700 shadow-sm rounded-bl-sm'
+              }`}>
                 <div className="prose prose-sm md:prose-base max-w-none leading-relaxed">
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
@@ -275,7 +279,7 @@ const App = () => {
                 {msg.role === 'assistant' && (
                   <button 
                     onClick={() => playAudio(msg.content)}
-                    className="mt-3 flex items-center gap-2 text-xs font-bold text-indigo-200 hover:text-white bg-indigo-500/20 px-3 py-1.5 rounded-lg transition-all"
+                    className="mt-3 flex items-center gap-2 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-all border border-indigo-200/50"
                   >
                     <Volume2 size={14} /> Dengarkan Audio
                   </button>
