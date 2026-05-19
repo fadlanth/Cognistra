@@ -29,10 +29,19 @@ const App = () => {
     }
   });
   
-  const userProfile = { id: "user_fadlan_01", name: "Fadlan", jurusan: "RPL" };
+  const [userId] = useState(() => {
+    let id = localStorage.getItem('cognistra_uid');
+    if (!id) {
+      id = 'user_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('cognistra_uid', id);
+    }
+    return id;
+  });
+
   const [userJurusan, setUserJurusan] = useState(() => {
     return localStorage.getItem('cognistra_jurusan') || 'RPL';
   });
+  const userProfile = { id: userId, name: "Ranger", jurusan: userJurusan };
   const [isSetupOpen, setIsSetupOpen] = useState(false);
 
   const chatContainerRef = useRef(null);
@@ -59,12 +68,58 @@ const App = () => {
     }
   }, []);
 
-  const [progress, setProgress] = useState({
-    fisika: { label: 'Fisika', level: 0, color: 'bg-blue-500', icon: <Atom size={18} className="text-blue-500"/> },
-    kimia: { label: 'Kimia', level: 0, color: 'bg-emerald-500', icon: <Beaker size={18} className="text-emerald-500"/> },
-    matematika: { label: 'Matematika', level: 0, color: 'bg-indigo-500', icon: <Calculator size={18} className="text-indigo-500"/> },
-    biologi: { label: 'Biologi', level: 0, color: 'bg-rose-500', icon: <Dna size={18} className="text-rose-500"/> },
+  // PERBAIKAN 1: UPDATE PESAN PEMBUKA SESUAI JURUSAN
+  useEffect(() => {
+    if (userJurusan && userJurusan !== 'RPL') {
+      setChatHistory(prev => {
+        const updated = { ...prev };
+        const newGreeting = (subjek, icon) => [
+          {
+            role: 'assistant',
+            content: `Halo! ${icon} Aku **Cognistra ${subjek}**. Di mode **Vocational**, kita bedah materi ini lewat kacamata **${userJurusan}**. Siap belajar?`
+          }
+        ];
+
+        updated.fisika.vocational = newGreeting('Fisika', '⚛️');
+        updated.kimia.vocational = newGreeting('Kimia', '🧪');
+        updated.matematika.vocational = newGreeting('Matematika', '📐');
+        updated.biologi.vocational = newGreeting('Biologi', '🧬');
+
+        return updated;
+      });
+    }
+  }, [userJurusan]);
+
+  // 3. DATA KEMAJUAN (XP) DENGAN PERSISTENCE
+  // Definisi UI Statis (Icon & Warna)
+  const initialProgressData = {
+    fisika: { label: 'Fisika', color: 'bg-blue-500', icon: <Atom size={18} className="text-blue-500"/> },
+    kimia: { label: 'Kimia', color: 'bg-emerald-500', icon: <Beaker size={18} className="text-emerald-500"/> },
+    matematika: { label: 'Matematika', color: 'bg-indigo-500', icon: <Calculator size={18} className="text-indigo-500"/> },
+    biologi: { label: 'Biologi', color: 'bg-rose-500', icon: <Dna size={18} className="text-rose-500"/> },
+  };
+
+  const [progress, setProgress] = useState(() => {
+    const savedLevels = localStorage.getItem('cognistra_progress');
+    const parsedLevels = savedLevels ? JSON.parse(savedLevels) : {};
+
+    const merged = {};
+    for (const [key, data] of Object.entries(initialProgressData)) {
+      merged[key] = {
+        ...data,
+        level: parsedLevels[key] || 0
+      };
+    }
+    return merged;
   });
+
+  useEffect(() => {
+    const levelsOnly = {};
+    for (const [key, data] of Object.entries(progress)) {
+      levelsOnly[key] = data.level;
+    }
+    localStorage.setItem('cognistra_progress', JSON.stringify(levelsOnly));
+  }, [progress]);
 
   const subjects = [
     { id: 'fisika', label: 'Fisika', icon: <Atom size={16}/> },
@@ -247,11 +302,21 @@ const App = () => {
             </div>
           ))}
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-white border border-slate-100 shadow-sm rounded-3xl rounded-bl-sm p-5 flex gap-2 items-center">
-                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
-                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
+            <div className="flex justify-start animate-fade-in">
+              <div className="bg-white border border-slate-100 shadow-sm rounded-3xl rounded-bl-sm p-5 max-w-[85%]">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-500 uppercase tracking-wider">
+                    Cognistra Processing...
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 italic">
+                  Mengkalkulasi analogi {userJurusan} untuk materi {activeSubject}...
+                </p>
               </div>
             </div>
           )}
