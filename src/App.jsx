@@ -31,7 +31,7 @@ const App = () => {
   
   const userProfile = { id: "user_fadlan_01", name: "Fadlan", jurusan: "RPL" };
   const chatContainerRef = useRef(null);
-  const N8N_WEBHOOK_URL = " https://producer-omissions-tomorrow-constructed.trycloudflare.com";
+  const N8N_WEBHOOK_URL = "https://dlann.app.n8n.cloud/webhook/cognistra";
 
   const [progress, setProgress] = useState({
     fisika: { label: 'Fisika', level: 0, color: 'bg-blue-500', icon: <Atom size={18} className="text-blue-500"/> },
